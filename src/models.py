@@ -14,7 +14,6 @@ class User(db.Model):
 
     favorites: Mapped[list["Favorite"]] = relationship(back_populates="user")
 
-
 class Planet(db.Model):
     __tablename__ = "planet"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -29,7 +28,6 @@ class Planet(db.Model):
             "name": self.name,
             "description": self.description,
         }
-
 
 class People(db.Model):
     __tablename__ = "people"
