@@ -9,12 +9,12 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, People, Planet, Favorite
-#from models import Person
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 db_url = os.getenv("DATABASE_URL")
+
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
 else:
@@ -89,7 +89,26 @@ def get_users():
 #Lista todos los favoritos que pertenecen al usuario actual
 @app.route("/users/favorites", methods=["GET"])
 def get_user_favorites():
-    user_id = request.args.get("user_id", type = int)
+    user_id = request.args.get("user_id", type=int)
+
+    if user_id is None:
+        return jsonify({"error": "user_id query parameter is required"}), 400
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    favorites = Favorite.query.filter_by(user_id=user_id).all()
+
+    result = []
+
+    for fav in favorites:
+        result.append({
+            "type": "planet",
+            "id": fav.planet.id,
+            "name": fav.planet.name,
+            "description": fav.people.description
+        })
+    return jsonify(result), 200
 
 #Añade un nuevo planet favorito al usuario actual con el id = planet_id
 @app.route("/favorite/planet/<int:planet_id>", methods=["POST"])
